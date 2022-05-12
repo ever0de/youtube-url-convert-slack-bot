@@ -2,6 +2,7 @@ import puppeteer from "puppeteer";
 import { load } from "cheerio";
 import Innertube from "youtubei.js";
 import Fastify from "fastify";
+import FastifyFormbody from "@fastify/formbody";
 
 const fastify = Fastify({ logger: true });
 
@@ -53,6 +54,8 @@ const isYoutubeMusicURL = (url: string) => {
 const isYoutubeURL = (url: string) => {
   return url.includes("youtube.com");
 };
+
+fastify.register(FastifyFormbody);
 
 fastify.post<{
   Body: { url: string };

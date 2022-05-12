@@ -6,6 +6,7 @@
     "start": "ts-node src/index.ts"
   },
   "dependencies": {
+    "@fastify/formbody": "^7.0.0",
     "cheerio": "1.0.0-rc.10",
     "fastify": "^3.29.0",
     "puppeteer": "^14.0.0",

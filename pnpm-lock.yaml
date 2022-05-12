@@ -1,6 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@fastify/formbody': ^7.0.0
   '@trivago/prettier-plugin-sort-imports': ^3.2.0
   '@types/node': ^17.0.32
   cheerio: 1.0.0-rc.10
@@ -12,6 +13,7 @@ specifiers:
   youtubei.js: 1.4.2-d.4
 
 dependencies:
+  '@fastify/formbody': 7.0.0
   cheerio: 1.0.0-rc.10
   fastify: 3.29.0
   puppeteer: 14.0.0
@@ -276,6 +278,12 @@ packages:
 
   /@fastify/error/2.0.0:
     resolution: {integrity: sha512-wI3fpfDT0t7p8E6dA2eTECzzOd+bZsZCJ2Hcv+Onn2b7ZwK3RwD27uW2QDaMtQhAfWQQP+WNK7nKf0twLsBf9w==}
+    dev: false
+
+  /@fastify/formbody/7.0.0:
+    resolution: {integrity: sha512-PrOrwR4fxzxkdE65Ex1c0bhl7UvUc47GTfhkHQhnROXc2p485ANR/A4Sl3uYhNvuFVAQtLQYNwjRZL8d6HOAOA==}
+    dependencies:
+      fastify-plugin: 3.0.1
     dev: false
 
   /@jridgewell/gen-mapping/0.1.1:
@@ -700,6 +708,10 @@ packages:
 
   /fast-safe-stringify/2.1.1:
     resolution: {integrity: sha512-W+KJc2dmILlPplD/H4K9l9LcAHAfPtP6BY84uVLXQ6Evcz9Lcg33Y2z1IVblT6xdY54PXYVHEv+0Wpq8Io6zkA==}
+    dev: false
+
+  /fastify-plugin/3.0.1:
+    resolution: {integrity: sha512-qKcDXmuZadJqdTm6vlCqioEbyewF60b/0LOFCcYN1B6BIZGlYJumWWOYs70SFYLDAH4YqdE1cxH/RKMG7rFxgA==}
     dev: false
 
   /fastify/3.29.0:
