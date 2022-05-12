@@ -79,10 +79,10 @@ fastify.setErrorHandler((error) => {
 });
 
 fastify.post<{
-  Body: { text: string; user_name: string };
-}>(`/convert/url`, async (request, reply) => {
+  Body: { text: string; user_name: string; channel_name: string };
+}>(`/convert/url`, (request, reply) => {
   const { slack } = fastify;
-  const { text: targetURL, user_name } = request.body;
+  const { text: targetURL, user_name, channel_name } = request.body;
   console.log(JSON.stringify(request.body));
 
   reply.statusCode = 200;
@@ -90,11 +90,13 @@ fastify.post<{
     spotify(targetURL, fastify.browser)
       .then((url) => {
         fastify.slack.chat.postMessage({
-          channel: `${process.env.CHANNEL}`,
+          channel: channel_name,
           text: `<@${user_name}> ${url}`,
         });
       })
-      .catch((error) => handleError(slack, error, { user_name, targetURL }));
+      .catch((error) =>
+        handleError(slack, error, { user_name, targetURL, channel_name }),
+      );
     return;
   }
 
@@ -102,21 +104,25 @@ fastify.post<{
     youtubeMusic(targetURL)
       .then((url) => {
         fastify.slack.chat.postMessage({
-          channel: `${process.env.CHANNEL}`,
+          channel: channel_name,
           text: `<@${user_name}> ${url}`,
         });
       })
-      .catch((error) => handleError(slack, error, { user_name, targetURL }));
+      .catch((error) =>
+        handleError(slack, error, { user_name, targetURL, channel_name }),
+      );
     return;
   }
 
   if (isYoutubeURL(targetURL)) {
     fastify.slack.chat
       .postMessage({
-        channel: `${process.env.CHANNEL}`,
+        channel: channel_name,
         text: `<@${user_name}> ${targetURL}`,
       })
-      .catch((error) => handleError(slack, error, { user_name, targetURL }));
+      .catch((error) =>
+        handleError(slack, error, { user_name, targetURL, channel_name }),
+      );
     return;
   }
 
@@ -126,14 +132,18 @@ fastify.post<{
 const handleError = (
   slack: WebClient,
   error: unknown,
-  { user_name, targetURL }: { user_name: string; targetURL: string },
+  {
+    user_name,
+    targetURL,
+    channel_name,
+  }: { user_name: string; targetURL: string; channel_name: string },
 ) => {
   console.error(error);
 
   const text = `Sorry <@${user_name}> Failed convert url: ${targetURL}`;
 
   slack.chat.postMessage({
-    channel: `${process.env.CHANNEL}`,
+    channel: channel_name,
     text: `<@${user_name}> ${text}`,
   });
 };
