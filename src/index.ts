@@ -4,6 +4,10 @@ import Innertube from "youtubei.js";
 import Fastify from "fastify";
 import FastifyFormbody from "@fastify/formbody";
 import queryString from "query-string";
+import { WebClient } from "@slack/web-api";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const fastify = Fastify({ logger: true });
 
@@ -38,6 +42,7 @@ const spotify = async (url: string, browser: puppeteer.Browser) => {
       })),
     );
 
+  console.log(searchList[0].url);
   return searchList[0].url;
 };
 
@@ -61,8 +66,10 @@ fastify.register(async function () {
   const browser = await puppeteer.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
+  const web = new WebClient(process.env.BOT_TOKEN);
 
   fastify.decorate("browser", browser);
+  fastify.decorate("slack", web);
 });
 
 fastify.register(FastifyFormbody, { parser: (str) => queryString.parse(str) });
@@ -73,36 +80,36 @@ fastify.setErrorHandler((error) => {
 
 fastify.post<{
   Body: { text: string };
-}>(`/convert/url`, async (request) => {
+}>(`/convert/url`, async (request, reply) => {
   const { text: targetURL } = request.body;
   console.log(JSON.stringify(request.body));
 
-  try {
-    if (isSpotifyURL(targetURL)) {
-      return await spotify(targetURL, fastify.browser);
-    }
-
-    if (isYoutubeMusicURL(targetURL)) {
-      return await youtubeMusic(targetURL);
-    }
-
-    if (isYoutubeURL(targetURL)) {
-      return targetURL;
-    }
-
-    return "Unknown URL";
-  } catch (error) {
-    console.log(error);
-    if (error instanceof Error) {
-      return error.message;
-    }
-
-    if (error instanceof Object) {
-      return JSON.stringify(error);
-    }
-
-    return `${error}`;
+  if (isSpotifyURL(targetURL)) {
+    spotify(targetURL, fastify.browser).then((url) => {
+      fastify.slack.chat.postMessage({
+        channel: `${process.env.CHANNEL}`,
+        text: url,
+      });
+    });
   }
+
+  if (isYoutubeMusicURL(targetURL)) {
+    youtubeMusic(targetURL).then((url) => {
+      fastify.slack.chat.postMessage({
+        channel: `${process.env.CHANNEL}`,
+        text: url,
+      });
+    });
+  }
+
+  if (isYoutubeURL(targetURL)) {
+    fastify.slack.chat.postMessage({
+      channel: `${process.env.CHANNEL}`,
+      text: targetURL,
+    });
+  }
+
+  return "success";
 });
 
 fastify.listen(3000, "0.0.0.0", (error, address) => {
@@ -114,5 +121,6 @@ fastify.listen(3000, "0.0.0.0", (error, address) => {
 declare module "fastify" {
   export interface FastifyInstance {
     browser: puppeteer.Browser;
+    slack: WebClient;
   }
 }
