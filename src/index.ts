@@ -86,7 +86,7 @@ fastify.post<{
     channel_name: string;
     response_url: string;
   };
-}>(`/convert/url`, (request, reply) => {
+}>(`/convert/url`, async (request, reply) => {
   const { text: targetURL, user_name, response_url } = request.body;
   console.log(JSON.stringify(request.body));
 
@@ -110,7 +110,7 @@ fastify.post<{
     return;
   }
 
-  reply.send(`Sorry <@${user_name}> Failed convert url: ${targetURL}`);
+  return `Sorry <@${user_name}> Failed convert url: ${targetURL}`;
 });
 
 fastify.listen(3000, "0.0.0.0", (error, address) => {
