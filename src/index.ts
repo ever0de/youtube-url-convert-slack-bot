@@ -10,7 +10,9 @@ const fastify = Fastify({ logger: true });
 const titleClassName = "hVBZRJ";
 
 const spotify = async (url: string) => {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
   const page = await browser.newPage();
   await page.goto(url);
 
@@ -59,9 +61,9 @@ const isYoutubeURL = (url: string) => {
 fastify.register(FastifyFormbody, { parser: (str) => queryString.parse(str) });
 
 fastify.post<{
-  Body: { url: string };
+  Body: { text: string };
 }>(`/convert/url`, async (request) => {
-  const { url: targetURL } = request.body;
+  const { text: targetURL } = request.body;
 
   if (isSpotifyURL(targetURL)) {
     return await spotify(targetURL);
