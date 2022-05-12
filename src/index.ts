@@ -89,7 +89,7 @@ fastify.post<{
     spotify(targetURL, fastify.browser).then((url) => {
       fastify.slack.chat.postMessage({
         channel: `${process.env.CHANNEL}`,
-        text: `@${user_name} ${url}`,
+        text: `<@${user_name}> ${url}`,
       });
     });
     return;
@@ -99,7 +99,7 @@ fastify.post<{
     youtubeMusic(targetURL).then((url) => {
       fastify.slack.chat.postMessage({
         channel: `${process.env.CHANNEL}`,
-        text: `@${user_name} ${url}`,
+        text: `<@${user_name}> ${url}`,
       });
     });
     return;
@@ -108,7 +108,7 @@ fastify.post<{
   if (isYoutubeURL(targetURL)) {
     fastify.slack.chat.postMessage({
       channel: `${process.env.CHANNEL}`,
-      text: `@${user_name} ${targetURL}`,
+      text: `<@${user_name}> ${targetURL}`,
     });
     return;
   }
