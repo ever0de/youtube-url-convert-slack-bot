@@ -1,7 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@fastify/formbody': ^7.0.0
+  '@fastify/formbody': 6.0.0
   '@trivago/prettier-plugin-sort-imports': ^3.2.0
   '@types/node': ^17.0.32
   cheerio: 1.0.0-rc.10
@@ -13,7 +13,7 @@ specifiers:
   youtubei.js: 1.4.2-d.4
 
 dependencies:
-  '@fastify/formbody': 7.0.0
+  '@fastify/formbody': 6.0.0
   cheerio: 1.0.0-rc.10
   fastify: 3.29.0
   puppeteer: 14.0.0
@@ -280,8 +280,8 @@ packages:
     resolution: {integrity: sha512-wI3fpfDT0t7p8E6dA2eTECzzOd+bZsZCJ2Hcv+Onn2b7ZwK3RwD27uW2QDaMtQhAfWQQP+WNK7nKf0twLsBf9w==}
     dev: false
 
-  /@fastify/formbody/7.0.0:
-    resolution: {integrity: sha512-PrOrwR4fxzxkdE65Ex1c0bhl7UvUc47GTfhkHQhnROXc2p485ANR/A4Sl3uYhNvuFVAQtLQYNwjRZL8d6HOAOA==}
+  /@fastify/formbody/6.0.0:
+    resolution: {integrity: sha512-YzPTXJbB3CzDMqU5K9YGSBt/nc/RDFZSxSWZ4SoqA3T2VRJzCPd7sZFpggdmlBRWhEBlvl0EWW7EX33kfbbFlg==}
     dependencies:
       fastify-plugin: 3.0.1
     dev: false
