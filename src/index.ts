@@ -1,13 +1,10 @@
+import axios from "axios";
 import puppeteer from "puppeteer";
 import { load } from "cheerio";
 import Innertube from "youtubei.js";
 import Fastify from "fastify";
 import FastifyFormbody from "@fastify/formbody";
 import queryString from "query-string";
-import { WebClient } from "@slack/web-api";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const fastify = Fastify({ logger: true });
 
@@ -62,14 +59,18 @@ const isYoutubeURL = (url: string) => {
   return url.includes("youtube.com");
 };
 
+const sendWebhook = async (url: string, text: string) => {
+  await axios.post(url, {
+    text,
+  });
+};
+
 fastify.register(async function () {
   const browser = await puppeteer.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
-  const web = new WebClient(process.env.BOT_TOKEN);
 
   fastify.decorate("browser", browser);
-  fastify.decorate("slack", web);
 });
 
 fastify.register(FastifyFormbody, { parser: (str) => queryString.parse(str) });
@@ -79,74 +80,38 @@ fastify.setErrorHandler((error) => {
 });
 
 fastify.post<{
-  Body: { text: string; user_name: string; channel_name: string };
+  Body: {
+    text: string;
+    user_name: string;
+    channel_name: string;
+    response_url: string;
+  };
 }>(`/convert/url`, (request, reply) => {
-  const { slack } = fastify;
-  const { text: targetURL, user_name, channel_name } = request.body;
+  const { text: targetURL, user_name, response_url } = request.body;
   console.log(JSON.stringify(request.body));
 
   reply.statusCode = 200;
   if (isSpotifyURL(targetURL)) {
-    spotify(targetURL, fastify.browser)
-      .then((url) => {
-        fastify.slack.chat.postMessage({
-          channel: channel_name,
-          text: `<@${user_name}> ${url}`,
-        });
-      })
-      .catch((error) =>
-        handleError(slack, error, { user_name, targetURL, channel_name }),
-      );
+    spotify(targetURL, fastify.browser).then((url) => {
+      sendWebhook(response_url, `<@${user_name}> ${url}`);
+    });
     return;
   }
 
   if (isYoutubeMusicURL(targetURL)) {
-    youtubeMusic(targetURL)
-      .then((url) => {
-        fastify.slack.chat.postMessage({
-          channel: channel_name,
-          text: `<@${user_name}> ${url}`,
-        });
-      })
-      .catch((error) =>
-        handleError(slack, error, { user_name, targetURL, channel_name }),
-      );
+    youtubeMusic(targetURL).then((url) => {
+      sendWebhook(response_url, `<@${user_name}> ${url}`);
+    });
     return;
   }
 
   if (isYoutubeURL(targetURL)) {
-    fastify.slack.chat
-      .postMessage({
-        channel: channel_name,
-        text: `<@${user_name}> ${targetURL}`,
-      })
-      .catch((error) =>
-        handleError(slack, error, { user_name, targetURL, channel_name }),
-      );
+    sendWebhook(response_url, `<@${user_name}> ${targetURL}`);
     return;
   }
 
   reply.send(`Sorry <@${user_name}> Failed convert url: ${targetURL}`);
 });
-
-const handleError = (
-  slack: WebClient,
-  error: unknown,
-  {
-    user_name,
-    targetURL,
-    channel_name,
-  }: { user_name: string; targetURL: string; channel_name: string },
-) => {
-  console.error(error);
-
-  const text = `Sorry <@${user_name}> Failed convert url: ${targetURL}`;
-
-  slack.chat.postMessage({
-    channel: channel_name,
-    text: `<@${user_name}> ${text}`,
-  });
-};
 
 fastify.listen(3000, "0.0.0.0", (error, address) => {
   if (error) throw error;
@@ -157,6 +122,5 @@ fastify.listen(3000, "0.0.0.0", (error, address) => {
 declare module "fastify" {
   export interface FastifyInstance {
     browser: puppeteer.Browser;
-    slack: WebClient;
   }
 }
