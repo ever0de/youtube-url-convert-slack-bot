@@ -126,7 +126,7 @@ fastify.post<{
     return;
   }
 
-  return;
+  reply.send(`Sorry <@${user_name}> Failed convert url: ${targetURL}`);
 });
 
 const handleError = (
