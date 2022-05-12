@@ -9,10 +9,7 @@ const fastify = Fastify({ logger: true });
 
 const titleClassName = "hVBZRJ";
 
-const spotify = async (url: string) => {
-  const browser = await puppeteer.launch({
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
+const spotify = async (url: string, browser: puppeteer.Browser) => {
   const page = await browser.newPage();
   await page.goto(url);
 
@@ -58,26 +55,52 @@ const isYoutubeURL = (url: string) => {
   return url.includes("youtube.com");
 };
 
+fastify.register(async function () {
+  const browser = await puppeteer.launch({
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+
+  fastify.decorate("browser", browser);
+});
+
 fastify.register(FastifyFormbody, { parser: (str) => queryString.parse(str) });
+
+fastify.setErrorHandler((error) => {
+  console.error(error);
+});
 
 fastify.post<{
   Body: { text: string };
 }>(`/convert/url`, async (request) => {
   const { text: targetURL } = request.body;
+  console.log(JSON.stringify(request.body));
 
-  if (isSpotifyURL(targetURL)) {
-    return await spotify(targetURL);
+  try {
+    if (isSpotifyURL(targetURL)) {
+      return await spotify(targetURL, fastify.browser);
+    }
+
+    if (isYoutubeMusicURL(targetURL)) {
+      return await youtubeMusic(targetURL);
+    }
+
+    if (isYoutubeURL(targetURL)) {
+      return targetURL;
+    }
+
+    return "Unknown URL";
+  } catch (error) {
+    console.log(error);
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    if (error instanceof Object) {
+      return JSON.stringify(error);
+    }
+
+    return `${error}`;
   }
-
-  if (isYoutubeMusicURL(targetURL)) {
-    return await youtubeMusic(targetURL);
-  }
-
-  if (isYoutubeURL(targetURL)) {
-    return targetURL;
-  }
-
-  return "Unknown URL";
 });
 
 fastify.listen(3000, "0.0.0.0", (error, address) => {
@@ -85,3 +108,9 @@ fastify.listen(3000, "0.0.0.0", (error, address) => {
 
   console.log(`Server is now listening on ${address}`);
 });
+
+declare module "fastify" {
+  export interface FastifyInstance {
+    browser: puppeteer.Browser;
+  }
+}
