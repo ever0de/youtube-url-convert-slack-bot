@@ -74,7 +74,7 @@ fastify.post<{
   return "Unknown URL";
 });
 
-fastify.listen({ port: 3000 }, (error, address) => {
+fastify.listen(3000, "0.0.0.0", (error, address) => {
   if (error) throw error;
 
   console.log(`Server is now listening on ${address}`);
