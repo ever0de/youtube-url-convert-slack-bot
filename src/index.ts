@@ -3,6 +3,7 @@ import { load } from "cheerio";
 import Innertube from "youtubei.js";
 import Fastify from "fastify";
 import FastifyFormbody from "@fastify/formbody";
+import queryString from "query-string";
 
 const fastify = Fastify({ logger: true });
 
@@ -55,7 +56,7 @@ const isYoutubeURL = (url: string) => {
   return url.includes("youtube.com");
 };
 
-fastify.register(FastifyFormbody);
+fastify.register(FastifyFormbody, { parser: (str) => queryString.parse(str) });
 
 fastify.post<{
   Body: { url: string };
