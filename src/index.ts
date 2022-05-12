@@ -84,6 +84,7 @@ fastify.post<{
   const { text: targetURL, user_name } = request.body;
   console.log(JSON.stringify(request.body));
 
+  reply.statusCode = 201;
   if (isSpotifyURL(targetURL)) {
     spotify(targetURL, fastify.browser).then((url) => {
       fastify.slack.chat.postMessage({
@@ -91,6 +92,7 @@ fastify.post<{
         text: `@${user_name} ${url}`,
       });
     });
+    return;
   }
 
   if (isYoutubeMusicURL(targetURL)) {
@@ -100,6 +102,7 @@ fastify.post<{
         text: `@${user_name} ${url}`,
       });
     });
+    return;
   }
 
   if (isYoutubeURL(targetURL)) {
@@ -107,9 +110,9 @@ fastify.post<{
       channel: `${process.env.CHANNEL}`,
       text: `@${user_name} ${targetURL}`,
     });
+    return;
   }
 
-  reply.statusCode = 201;
   return;
 });
 
