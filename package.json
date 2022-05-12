@@ -3,7 +3,12 @@
   "version": "0.1.0",
   "license": "UNLICENSED",
   "scripts": {
-    "start": "ts-node src/index.ts"
+    "prebuild": "rm -rf dist",
+    "build": "tsc",
+    "prestart": "pnpm build",
+    "start": "node dist/main.js",
+    "start:ts": "ts-node src/main.ts",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@fastify/formbody": "6.0.0",
