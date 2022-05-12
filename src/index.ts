@@ -109,7 +109,8 @@ fastify.post<{
     });
   }
 
-  return "success";
+  reply.statusCode = 201;
+  return;
 });
 
 fastify.listen(3000, "0.0.0.0", (error, address) => {
