@@ -79,16 +79,16 @@ fastify.setErrorHandler((error) => {
 });
 
 fastify.post<{
-  Body: { text: string };
+  Body: { text: string; user_name: string };
 }>(`/convert/url`, async (request, reply) => {
-  const { text: targetURL } = request.body;
+  const { text: targetURL, user_name } = request.body;
   console.log(JSON.stringify(request.body));
 
   if (isSpotifyURL(targetURL)) {
     spotify(targetURL, fastify.browser).then((url) => {
       fastify.slack.chat.postMessage({
         channel: `${process.env.CHANNEL}`,
-        text: url,
+        text: `@${user_name} ${url}`,
       });
     });
   }
@@ -97,7 +97,7 @@ fastify.post<{
     youtubeMusic(targetURL).then((url) => {
       fastify.slack.chat.postMessage({
         channel: `${process.env.CHANNEL}`,
-        text: url,
+        text: `@${user_name} ${url}`,
       });
     });
   }
@@ -105,7 +105,7 @@ fastify.post<{
   if (isYoutubeURL(targetURL)) {
     fastify.slack.chat.postMessage({
       channel: `${process.env.CHANNEL}`,
-      text: targetURL,
+      text: `@${user_name} ${targetURL}`,
     });
   }
 
