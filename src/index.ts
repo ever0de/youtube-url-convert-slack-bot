@@ -13,9 +13,11 @@ const spotify = async (url: string, browser: puppeteer.Browser) => {
   const page = await browser.newPage();
   await page.goto(url);
 
+  await page.waitForSelector(`.${titleClassName}`);
   const html = await page.content();
   const $ = load(html);
   const title = $(`.${titleClassName}`).text();
+  console.log(`found title: ${title}`);
 
   await page.close();
 
