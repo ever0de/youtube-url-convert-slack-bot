@@ -81,46 +81,62 @@ fastify.setErrorHandler((error) => {
 fastify.post<{
   Body: { text: string; user_name: string };
 }>(`/convert/url`, async (request, reply) => {
+  const { slack } = fastify;
   const { text: targetURL, user_name } = request.body;
   console.log(JSON.stringify(request.body));
 
-  reply.statusCode = 201;
-  try {
-    if (isSpotifyURL(targetURL)) {
-      spotify(targetURL, fastify.browser).then((url) => {
+  reply.statusCode = 200;
+  if (isSpotifyURL(targetURL)) {
+    spotify(targetURL, fastify.browser)
+      .then((url) => {
         fastify.slack.chat.postMessage({
           channel: `${process.env.CHANNEL}`,
           text: `<@${user_name}> ${url}`,
         });
-      });
-      return;
-    }
+      })
+      .catch((error) => handleError(slack, error, { user_name, targetURL }));
+    return;
+  }
 
-    if (isYoutubeMusicURL(targetURL)) {
-      youtubeMusic(targetURL).then((url) => {
+  if (isYoutubeMusicURL(targetURL)) {
+    youtubeMusic(targetURL)
+      .then((url) => {
         fastify.slack.chat.postMessage({
           channel: `${process.env.CHANNEL}`,
           text: `<@${user_name}> ${url}`,
         });
-      });
-      return;
-    }
+      })
+      .catch((error) => handleError(slack, error, { user_name, targetURL }));
+    return;
+  }
 
-    if (isYoutubeURL(targetURL)) {
-      fastify.slack.chat.postMessage({
+  if (isYoutubeURL(targetURL)) {
+    fastify.slack.chat
+      .postMessage({
         channel: `${process.env.CHANNEL}`,
         text: `<@${user_name}> ${targetURL}`,
-      });
-      return;
-    }
-  } catch (error) {
-    console.error(error);
-
-    return `Sorry <@${user_name}> Failed convert url: ${targetURL}`;
+      })
+      .catch((error) => handleError(slack, error, { user_name, targetURL }));
+    return;
   }
 
   return;
 });
+
+const handleError = (
+  slack: WebClient,
+  error: unknown,
+  { user_name, targetURL }: { user_name: string; targetURL: string },
+) => {
+  console.error(error);
+
+  const text = `Sorry <@${user_name}> Failed convert url: ${targetURL}`;
+
+  slack.chat.postMessage({
+    channel: `${process.env.CHANNEL}`,
+    text: `<@${user_name}> ${text}`,
+  });
+};
 
 fastify.listen(3000, "0.0.0.0", (error, address) => {
   if (error) throw error;
