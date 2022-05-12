@@ -85,32 +85,38 @@ fastify.post<{
   console.log(JSON.stringify(request.body));
 
   reply.statusCode = 201;
-  if (isSpotifyURL(targetURL)) {
-    spotify(targetURL, fastify.browser).then((url) => {
+  try {
+    if (isSpotifyURL(targetURL)) {
+      spotify(targetURL, fastify.browser).then((url) => {
+        fastify.slack.chat.postMessage({
+          channel: `${process.env.CHANNEL}`,
+          text: `<@${user_name}> ${url}`,
+        });
+      });
+      return;
+    }
+
+    if (isYoutubeMusicURL(targetURL)) {
+      youtubeMusic(targetURL).then((url) => {
+        fastify.slack.chat.postMessage({
+          channel: `${process.env.CHANNEL}`,
+          text: `<@${user_name}> ${url}`,
+        });
+      });
+      return;
+    }
+
+    if (isYoutubeURL(targetURL)) {
       fastify.slack.chat.postMessage({
         channel: `${process.env.CHANNEL}`,
-        text: `<@${user_name}> ${url}`,
+        text: `<@${user_name}> ${targetURL}`,
       });
-    });
-    return;
-  }
+      return;
+    }
+  } catch (error) {
+    console.error(error);
 
-  if (isYoutubeMusicURL(targetURL)) {
-    youtubeMusic(targetURL).then((url) => {
-      fastify.slack.chat.postMessage({
-        channel: `${process.env.CHANNEL}`,
-        text: `<@${user_name}> ${url}`,
-      });
-    });
-    return;
-  }
-
-  if (isYoutubeURL(targetURL)) {
-    fastify.slack.chat.postMessage({
-      channel: `${process.env.CHANNEL}`,
-      text: `<@${user_name}> ${targetURL}`,
-    });
-    return;
+    return `Sorry <@${user_name}> Failed convert url: ${targetURL}`;
   }
 
   return;
