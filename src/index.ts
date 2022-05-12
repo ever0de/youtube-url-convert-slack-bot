@@ -54,7 +54,7 @@ const isYoutubeURL = (url: string) => {
   return url.includes("youtube.com");
 };
 
-fastify.get<{
+fastify.post<{
   Body: { url: string };
 }>(`/convert/url`, async (request) => {
   const { url: targetURL } = request.body;
