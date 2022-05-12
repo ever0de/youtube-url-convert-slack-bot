@@ -5,6 +5,10 @@ import Innertube from "youtubei.js";
 import Fastify from "fastify";
 import FastifyFormbody from "@fastify/formbody";
 import queryString from "query-string";
+import dotenv from "dotenv";
+import { WebClient } from "@slack/web-api";
+
+dotenv.config();
 
 const fastify = Fastify({ logger: true });
 
@@ -70,7 +74,10 @@ fastify.register(async function () {
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
+  const slack = new WebClient(process.env.BOT_TOKEN);
+
   fastify.decorate("browser", browser);
+  fastify.decorate("slack", slack);
 });
 
 fastify.register(FastifyFormbody, { parser: (str) => queryString.parse(str) });
@@ -87,27 +94,55 @@ fastify.post<{
     response_url: string;
   };
 }>(`/convert/url`, async (request, reply) => {
-  const { text: targetURL, user_name, response_url } = request.body;
+  const { slack } = fastify;
+  const {
+    text: targetURL,
+    user_name,
+    response_url,
+    channel_name,
+  } = request.body;
   console.log(JSON.stringify(request.body));
 
   reply.statusCode = 200;
   if (isSpotifyURL(targetURL)) {
     spotify(targetURL, fastify.browser).then((url) => {
-      sendWebhook(response_url, `<@${user_name}> ${url}`);
+      slack.chat
+        .postMessage({
+          channel: channel_name,
+          text: `<@${user_name}> ${url}`,
+        })
+        .catch(() => {
+          sendWebhook(response_url, `${channel_name}에 봇을 초대해주세요.`);
+        });
     });
-    return;
+    return "";
   }
 
   if (isYoutubeMusicURL(targetURL)) {
     youtubeMusic(targetURL).then((url) => {
-      sendWebhook(response_url, `<@${user_name}> ${url}`);
+      slack.chat
+        .postMessage({
+          channel: channel_name,
+          text: `<@${user_name}> ${url}`,
+        })
+        .catch(() => {
+          sendWebhook(response_url, `${channel_name}에 봇을 초대해주세요.`);
+        });
     });
-    return;
+    return "";
   }
 
   if (isYoutubeURL(targetURL)) {
-    sendWebhook(response_url, `<@${user_name}> ${targetURL}`);
-    return;
+    slack.chat
+      .postMessage({
+        channel: channel_name,
+        text: `<@${user_name}> ${targetURL}`,
+      })
+      .catch(() => {
+        sendWebhook(response_url, `${channel_name}에 봇을 초대해주세요.`);
+      });
+
+    return "";
   }
 
   return `Sorry <@${user_name}> Failed convert url: ${targetURL}`;
@@ -122,5 +157,6 @@ fastify.listen(3000, "0.0.0.0", (error, address) => {
 declare module "fastify" {
   export interface FastifyInstance {
     browser: puppeteer.Browser;
+    slack: WebClient;
   }
 }
