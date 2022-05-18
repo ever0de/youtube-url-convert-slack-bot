@@ -16,18 +16,20 @@ export const convertURL = async (fastify: FastifyInstance) => {
   }>(`/convert/url`, async (request) => {
     const { slack } = fastify;
     const {
-      text: targetURL,
+      text: sentMessage,
       user_name,
       response_url,
       channel_name,
     } = request.body;
 
-    if (isSpotifyURL(targetURL)) {
+    if (isSpotifyURL(sentMessage)) {
+      const [targetURL, message] = sentMessage.split("\n");
+
       getYoutubeURLFromSpotify(targetURL, fastify.browser).then((url) => {
         slack.chat
           .postMessage({
             channel: channel_name,
-            text: `<@${user_name}> ${url}`,
+            text: `<@${user_name}> ${url}\n${message}`,
           })
           .catch(() => {
             sendWebhook(response_url, `${channel_name}에 봇을 초대해주세요.`);
@@ -36,8 +38,8 @@ export const convertURL = async (fastify: FastifyInstance) => {
       return "";
     }
 
-    if (isYoutubeMusicURL(targetURL)) {
-      getYoutubeURLFromYoutubeMusic(targetURL).then((url) => {
+    if (isYoutubeMusicURL(sentMessage)) {
+      getYoutubeURLFromYoutubeMusic(sentMessage).then((url) => {
         slack.chat
           .postMessage({
             channel: channel_name,
@@ -50,11 +52,11 @@ export const convertURL = async (fastify: FastifyInstance) => {
       return "";
     }
 
-    if (isYoutubeURL(targetURL)) {
+    if (isYoutubeURL(sentMessage)) {
       slack.chat
         .postMessage({
           channel: channel_name,
-          text: `<@${user_name}> ${targetURL}`,
+          text: `<@${user_name}> ${sentMessage}`,
         })
         .catch(() => {
           sendWebhook(response_url, `${channel_name}에 봇을 초대해주세요.`);
@@ -63,6 +65,6 @@ export const convertURL = async (fastify: FastifyInstance) => {
       return "";
     }
 
-    return `Sorry <@${user_name}> Failed convert url: ${targetURL}`;
+    return `Sorry <@${user_name}> Failed convert url: ${sentMessage}`;
   });
 };
