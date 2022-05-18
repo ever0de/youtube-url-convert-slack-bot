@@ -4,7 +4,8 @@ export const help = async (fastify: FastifyInstance) => {
   fastify.post(`/help`, async () => {
     return `
     \`\`\`
-    /url <spotify url or youtube music url>\n하고싶은말
+1. /help
+2. /url <spotify url or youtube music url>\n<하고싶은말>
     \`\`\`
     `;
   });
