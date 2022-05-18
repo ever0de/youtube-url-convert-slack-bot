@@ -2,7 +2,8 @@ import { load } from "cheerio";
 import { Browser } from "puppeteer";
 import Innertube from "youtubei.js";
 
-const spotifyTitleClassName = "hVBZRJ";
+const titleClassName = "hVBZRJ";
+const creatorClassName = "eHCcSU";
 
 export const getYoutubeURLFromSpotify = async (
   url: string,
@@ -11,17 +12,19 @@ export const getYoutubeURLFromSpotify = async (
   const page = await browser.newPage();
   await page.goto(url);
 
-  await page.waitForSelector(`.${spotifyTitleClassName}`);
+  await page.waitForSelector(`.${titleClassName}`);
   const html = await page.content();
   const $ = load(html);
-  const title = $(`.${spotifyTitleClassName}`).text();
+  const title = $(`.${titleClassName}`).text();
   console.log(`found title: ${title}`);
+  const creator = $(`.${creatorClassName} > a`).text();
+  console.log(`found creator: ${creator}`);
 
   await page.close();
 
   const youtube = await new Innertube({ gl: "US" });
   const searchList = await youtube
-    .search(title, {
+    .search(`${creator} ${title}`, {
       client: "YOUTUBE",
       order: "",
       period: "",
