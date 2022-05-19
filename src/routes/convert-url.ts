@@ -29,7 +29,7 @@ export const convertURL = async (fastify: FastifyInstance) => {
         slack.chat
           .postMessage({
             channel: channel_name,
-            text: `<@${user_name}> ${url}\n${message}`,
+            text: `<@${user_name}> ${url}\n${message ? message : ""}`,
           })
           .catch(() => {
             sendWebhook(response_url, `${channel_name}에 봇을 초대해주세요.`);
