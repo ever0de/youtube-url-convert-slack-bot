@@ -1,7 +1,10 @@
 import axios from "axios";
 
-export const sendWebhook = async (url: string, text: string) => {
-  await axios.post(url, {
+export const sendWebhook = async (
+  url: string,
+  text: string,
+): Promise<unknown> => {
+  return axios.post<unknown>(url, {
     text,
   });
 };
