@@ -22,14 +22,18 @@ export const convertURL = async (fastify: FastifyInstance) => {
       channel_name,
     } = request.body;
 
+    const [url, message] = sentMessage.split("\n");
+
+    const generateMessage = (url: string) => {
+      return `<@${user_name}> ${url}\n${message ?? ""}`;
+    };
+
     if (isSpotifyURL(sentMessage)) {
-      const [targetURL, message] = sentMessage.split("\n");
-
-      getYoutubeURLFromSpotify(targetURL, fastify.browser).then((url) => {
+      getYoutubeURLFromSpotify(url, fastify.browser).then((url) => {
         slack.chat
           .postMessage({
             channel: channel_name,
-            text: `<@${user_name}> ${url}\n${message ? message : ""}`,
+            text: generateMessage(url),
           })
           .catch(() => {
             sendWebhook(response_url, `${channel_name}에 봇을 초대해주세요.`);
@@ -38,12 +42,12 @@ export const convertURL = async (fastify: FastifyInstance) => {
       return "";
     }
 
-    if (isYoutubeMusicURL(sentMessage)) {
-      getYoutubeURLFromYoutubeMusic(sentMessage).then((url) => {
+    if (isYoutubeMusicURL(url)) {
+      getYoutubeURLFromYoutubeMusic(url).then((url) => {
         slack.chat
           .postMessage({
             channel: channel_name,
-            text: `<@${user_name}> ${url}`,
+            text: generateMessage(url),
           })
           .catch(() => {
             sendWebhook(response_url, `${channel_name}에 봇을 초대해주세요.`);
@@ -52,11 +56,11 @@ export const convertURL = async (fastify: FastifyInstance) => {
       return "";
     }
 
-    if (isYoutubeURL(sentMessage)) {
+    if (isYoutubeURL(url)) {
       slack.chat
         .postMessage({
           channel: channel_name,
-          text: `<@${user_name}> ${sentMessage}`,
+          text: generateMessage(url),
         })
         .catch(() => {
           sendWebhook(response_url, `${channel_name}에 봇을 초대해주세요.`);
@@ -65,6 +69,6 @@ export const convertURL = async (fastify: FastifyInstance) => {
       return "";
     }
 
-    return `Sorry <@${user_name}> Failed convert url: ${sentMessage}`;
+    return `Sorry <@${user_name}> Failed convert url: ${url}`;
   });
 };
